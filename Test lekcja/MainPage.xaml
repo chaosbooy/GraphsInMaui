@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Test_lekcja.MainPage">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Spacing="25"
+            Padding="30,0"
+            VerticalOptions="Start">
+
+
+            <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Spacing="50">
+
+                <VerticalStackLayout>
+                    <Label
+                        Text="Selected node"
+                        FontSize="Small"
+                        HorizontalOptions="Center"/>
+
+                    <Entry
+                        x:Name="NodeId"
+                        MaxLength="3"
+                        Keyboard="Numeric"
+                        TextChanged="NodeIDInput" 
+                        HorizontalTextAlignment="Center"
+                        Text=""/>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout>
+                    <Label
+                        Text="lat"
+                        FontSize="Small"
+                        HorizontalOptions="Center"/>
+
+                    <Entry
+                        x:Name="NodeLat"
+                        MaxLength="20"
+                        Keyboard="Numeric"
+                        TextChanged="NumberInput"
+                        Text=""/>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout>
+                    <Label
+                        Text="lon"
+                        FontSize="Small"
+                        HorizontalOptions="Center"/>
+
+                    <Entry
+                        x:Name="NodeLon"
+                        MaxLength="3"
+                        Keyboard="Numeric"
+                        TextChanged="NumberInput"
+                        Text=""/>
+                </VerticalStackLayout>
+
+                <Button
+                    Text="Add Node"
+                    SemanticProperties.Hint="Adds a node with specified position and id"
+                    Clicked="OnNodeAddWithId"
+                    VerticalOptions="Center"/>
+
+                <Button
+                    Text="Add random Node"
+                    SemanticProperties.Hint="Adds a node with random position"
+                    Clicked="OnNodeAdd"
+                    VerticalOptions="Center"/>
+
+                <Button
+                    Text="Delete Node"
+                    SemanticProperties.Hint="Deletes the selected node"
+                    Clicked="OnNodeDelete"
+                    VerticalOptions="Center"/>
+
+                <Button
+                    Text="Change Node Location"
+                    SemanticProperties.Hint="Changes the location of the specified (with id) node"
+                    Clicked="OnNodeChangeLocation"
+                    VerticalOptions="Center"/>
+
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout
+                HorizontalOptions="CenterAndExpand">
+                
+                <Label
+                    x:Name="NodeList"
+                    Text="Node List: "
+                    SemanticProperties.HeadingLevel="Level1"
+                    FontSize="32"/>
+
+                <Image
+                    Source="dotnet_bot.png"
+                    SemanticProperties.Description="Cute dot net bot waving hi to you!"
+                    HeightRequest="200">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerDoubleTapped"
+                          NumberOfTapsRequired="2" />
+                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerSingleTapped"
+                          NumberOfTapsRequired="1" />
+                    </Image.GestureRecognizers>
+                </Image>
+            </HorizontalStackLayout>
+
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
