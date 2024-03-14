@@ -30,7 +30,7 @@ namespace Test_lekcja
 
         private void OnNodeDelete(object sender, EventArgs e)
         {
-            if (!nodes.ContainsKey(selectedNode)) return;
+            if (!nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty) return;
             nodes.Remove(selectedNode);
 
             UpdateNodeList();

@@ -9,12 +9,15 @@
             Padding="30,0"
             VerticalOptions="Start">
 
-
-            <HorizontalStackLayout
+            <FlexLayout
                 HorizontalOptions="Center"
-                Spacing="50">
+                AlignContent="Stretch"
+                JustifyContent="Center"
+                Direction="Row"
+                Wrap="Wrap">
 
-                <VerticalStackLayout>
+                <VerticalStackLayout
+                    Margin="5">
                     <Label
                         Text="Selected node"
                         FontSize="Small"
@@ -29,7 +32,8 @@
                         Text=""/>
                 </VerticalStackLayout>
 
-                <VerticalStackLayout>
+                <VerticalStackLayout
+                    Margin="5">
                     <Label
                         Text="lat"
                         FontSize="Small"
@@ -43,7 +47,8 @@
                         Text=""/>
                 </VerticalStackLayout>
 
-                <VerticalStackLayout>
+                <VerticalStackLayout
+                    Margin="5">
                     <Label
                         Text="lon"
                         FontSize="Small"
@@ -61,41 +66,61 @@
                     Text="Add Node"
                     SemanticProperties.Hint="Adds a node with specified position and id"
                     Clicked="OnNodeAddWithId"
-                    VerticalOptions="Center"/>
+                    VerticalOptions="Center"
+                    Margin="10"/>
 
                 <Button
                     Text="Add random Node"
                     SemanticProperties.Hint="Adds a node with random position"
                     Clicked="OnNodeAdd"
-                    VerticalOptions="Center"/>
+                    VerticalOptions="Center"
+                    Margin="10"/>
 
                 <Button
                     Text="Delete Node"
                     SemanticProperties.Hint="Deletes the selected node"
                     Clicked="OnNodeDelete"
-                    VerticalOptions="Center"/>
+                    VerticalOptions="Center"
+                    Margin="10"/>
 
                 <Button
                     Text="Change Node Location"
                     SemanticProperties.Hint="Changes the location of the specified (with id) node"
                     Clicked="OnNodeChangeLocation"
-                    VerticalOptions="Center"/>
+                    VerticalOptions="Center"
+                    Margin="10"/>
 
-            </HorizontalStackLayout>
+            </FlexLayout>
 
-            <HorizontalStackLayout
-                HorizontalOptions="CenterAndExpand">
-                
-                <Label
-                    x:Name="NodeList"
-                    Text="Node List: "
-                    SemanticProperties.HeadingLevel="Level1"
-                    FontSize="32"/>
+            <FlexLayout
+                AlignContent="Stretch">
+
+                <VerticalStackLayout Spacing="100">
+                    <Label
+                        x:Name="NodeList"
+                        Text="Node List: "
+                        SemanticProperties.HeadingLevel="Level1"
+                        FontSize="32"/>
+
+                    <Picker x:Name="NodePicker"
+                            Title="All Nodes"
+                            FontSize="Large">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>poo</x:String>
+                                <x:String>pee</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+
+                    </Picker>
+
+                </VerticalStackLayout>
 
                 <Image
                     Source="dotnet_bot.png"
                     SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                    HeightRequest="200">
+                    HeightRequest="200"
+                    VerticalOptions="Start">
                     <Image.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTapGestureRecognizerDoubleTapped"
                           NumberOfTapsRequired="2" />
@@ -103,7 +128,7 @@
                           NumberOfTapsRequired="1" />
                     </Image.GestureRecognizers>
                 </Image>
-            </HorizontalStackLayout>
+            </FlexLayout>
 
 
         </VerticalStackLayout>
