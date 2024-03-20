@@ -100,15 +100,16 @@
                         x:Name="NodeList"
                         Text="Node List: "
                         SemanticProperties.HeadingLevel="Level1"
-                        FontSize="32"/>
+                        FontSize="32"
+                        MinimumWidthRequest="100"/>
 
                     <Picker x:Name="NodePicker"
                             Title="All Nodes"
                             FontSize="Large">
                         <Picker.ItemsSource>
                             <x:Array Type="{x:Type x:String}">
-                                <x:String>poo</x:String>
-                                <x:String>pee</x:String>
+                                <x:String>node 1</x:String>
+                                <x:String>node 2</x:String>
                             </x:Array>
                         </Picker.ItemsSource>
 
@@ -116,18 +117,28 @@
 
                 </VerticalStackLayout>
 
-                <Image
-                    Source="dotnet_bot.png"
-                    SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                    HeightRequest="200"
-                    VerticalOptions="Start">
-                    <Image.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerDoubleTapped"
-                          NumberOfTapsRequired="2" />
-                        <TapGestureRecognizer Tapped="OnTapGestureRecognizerSingleTapped"
-                          NumberOfTapsRequired="1" />
-                    </Image.GestureRecognizers>
-                </Image>
+                <AbsoluteLayout
+                    HorizontalOptions="FillAndExpand"
+                    MinimumHeightRequest="300"
+                    MinimumWidthRequest="300"
+                    BackgroundColor="AliceBlue"
+                    Margin="100,0,0,0">
+                    <Image
+                        x:Name="NodeVisual"
+                        Source="dotnet_bot.png"
+                        AbsoluteLayout.LayoutBounds="0,0,50,50"
+                        SemanticProperties.Description="Cute dot net bot waving hi to you!">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnTapGestureRecognizerDoubleTapped"
+                                                  NumberOfTapsRequired="2" />
+                            <TapGestureRecognizer Tapped="OnTapGestureRecognizerSingleTapped"
+                                                  NumberOfTapsRequired="1" />
+                            <DragGestureRecognizer DragStarting="OnDragRecognizer" />
+                            <DragGestureRecognizer DropCompleted="OnDropRecognizer" />
+                        </Image.GestureRecognizers>
+                    </Image>
+                </AbsoluteLayout>
+                
             </FlexLayout>
 
 

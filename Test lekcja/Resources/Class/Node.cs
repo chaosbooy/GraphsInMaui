@@ -15,6 +15,7 @@
         {
             this.lat = lat;
             this.lon = lon;
+            friends = new Dictionary<int, int>();
         }
 
         public void AddFriend(int FriendID, int weight)

@@ -62,12 +62,16 @@ namespace Test_lekcja
 
         private void NodeIDInput(object sender, TextChangedEventArgs e)
         {
-            NumberInput(sender, e);
+            Entry entry = (Entry)sender;
 
-            Entry s = (Entry)sender;
+            if (!int.TryParse(e.NewTextValue, out _))
+            {
+                entry.Text = new string(e.NewTextValue.Where(char.IsDigit).ToArray());
+                return;
+            }
 
-            if (s.Text.Trim() == string.Empty) return;
-               selectedNode = Int32.Parse(s.Text);
+            if (entry.Text == string.Empty) return;
+               selectedNode = Int32.Parse(entry.Text);
         }
 
         private void NumberInput(object sender, TextChangedEventArgs e)
@@ -93,6 +97,8 @@ namespace Test_lekcja
             SemanticScreenReader.Announce(NodeList.Text);
         }
 
+
+        //operowanie na obiekcie wyświetlanym
         bool doubleTapped;
         bool ignoreNextTap;
         void OnTapGestureRecognizerDoubleTapped(object sender, TappedEventArgs args)
@@ -119,6 +125,23 @@ namespace Test_lekcja
                 NodeList.Text = "single tapped";
             }
         }
+
+        void OnDragRecognizer(object sender, DragStartingEventArgs args) 
+        {
+            NodeList.Text = "DragStart";
+
+            SemanticScreenReader.Announce(NodeList.Text);
+        }
+        void OnDropRecognizer(object sender, DropCompletedEventArgs args) 
+        {
+            NodeList.Text = "Dropped";
+
+            NodeVisual.Layout(new Rect(100, 100, 50, 50));
+
+            
+            SemanticScreenReader.Announce(NodeList.Text);
+        }
+
     }
 
 }
