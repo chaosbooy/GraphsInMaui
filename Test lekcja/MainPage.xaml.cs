@@ -102,7 +102,7 @@ namespace Test_lekcja
                 double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
                 if(distance < d.radius && d.focusedNode == "")
                 {
-                    ShowNodeInfo(node.Key);
+                    ShowNodeInfo(node.Key);  //JESZCZE NIE ISTNIEJE
                     d.focusedNode = node.Key;
 
                     madeOperation = true;
@@ -134,7 +134,7 @@ namespace Test_lekcja
 
             if (!madeOperation && d.focusedNode == "")
             {
-                d.nodes.Add("sdsd", new Node((float)x, (float)y));
+                d.nodes.Add("sdsd", new Node((float)x, (float)y));  //DO POPRAWY 
                 d.focusedNode = "";
             }
             else if (!madeOperation && d.focusedNode != "") d.focusedNode = "";

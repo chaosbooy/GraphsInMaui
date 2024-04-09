@@ -9,11 +9,13 @@
         public void Draw(ICanvas canvas, RectF rect)
         {
             canvas.StrokeColor = Colors.White;
-            canvas.StrokeSize = 10;
+            canvas.StrokeSize = 5;
+            canvas.FillColor = Colors.White;
+
 
             foreach(var node in nodes)
             {
-                canvas.DrawCircle(node.Value.getLat(), node.Value.getLon(), radius);
+                canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
 
                 foreach (var friend in node.Value.getFriends().Keys) {
 
@@ -25,8 +27,9 @@
 
             if(nodes.ContainsKey(focusedNode))
             {
+                canvas.StrokeSize = 5;
                 canvas.StrokeColor = Colors.Blue;
-                canvas.DrawCircle(nodes[focusedNode].getLat(), nodes[focusedNode].getLon(), radius);
+                canvas.DrawCircle(nodes[focusedNode].getLat(), nodes[focusedNode].getLon(), radius - 2.5f);
             }
         }
     }
