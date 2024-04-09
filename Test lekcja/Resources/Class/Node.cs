@@ -2,49 +2,54 @@
 {
     internal class Node
     {
-        private int lat, lon;
-        private Dictionary<int, int> friends;
+        private float lat, lon;
+        private Dictionary<string, int> friends;
 
         public Node()
         {
             lat = 0; lon = 0;
-            friends = new Dictionary<int, int>();
+            friends = new Dictionary<string, int>();
         }
 
-        public Node(int lat, int lon)
+        public Node(float lat, float lon)
         {
             this.lat = lat;
             this.lon = lon;
-            friends = new Dictionary<int, int>();
+            friends = new Dictionary<string, int>();
         }
 
-        public void AddFriend(int FriendID, int weight)
+        public void AddFriend(string FriendID, int weight)
         {
             friends.Add(FriendID, weight);
         }
 
-        public void ChangeFriendWeight(int FriendID, int weight)
+        public void ChangeFriendWeight(string FriendID, int weight)
         {
             friends[FriendID] = weight;
         }
 
-        public void RemoveFriend(int FriendID)
+        public void RemoveFriend(string FriendID)
         {
             friends.Remove(FriendID);
         }
 
-        public void ChangePosition(int lat, int lon)
+        public void ChangePosition(float lat, float lon)
         {
             this.lat = lat;
             this.lon = lon;
         }
 
-        public int getLat() { return lat; }
-        public int getLon() { return lon; }
+        public bool ContainsFriend(string FriendID)
+        {
+            return friends.ContainsKey(FriendID);
+        }
 
-        public void setLat(int lat) { this.lat = lat; }
-        public void setLon(int lon) {  this.lon = lon; }
+        public float getLat() { return lat; }
+        public float getLon() { return lon; }
 
-        public Dictionary<int, int> getFriends() { return friends; }
+        public void setLat(float lat) { this.lat = lat; }
+        public void setLon(float lon) {  this.lon = lon; }
+
+        public Dictionary<string, int> getFriends() { return friends; }
     }
 }

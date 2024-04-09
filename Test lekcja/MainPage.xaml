@@ -7,7 +7,7 @@
         <VerticalStackLayout
             Spacing="25"
             Padding="30,0"
-            VerticalOptions="Start">
+            HorizontalOptions="Center">
 
             <FlexLayout
                 HorizontalOptions="Center"
@@ -25,9 +25,7 @@
 
                     <Entry
                         x:Name="NodeId"
-                        MaxLength="3"
-                        Keyboard="Numeric"
-                        TextChanged="NodeIDInput" 
+                        MaxLength="10"
                         HorizontalTextAlignment="Center"
                         Text=""/>
                 </VerticalStackLayout>
@@ -92,55 +90,26 @@
 
             </FlexLayout>
 
-            <FlexLayout
-                AlignContent="Stretch">
 
-                <VerticalStackLayout Spacing="100">
-                    <Label
-                        x:Name="NodeList"
-                        Text="Node List: "
-                        SemanticProperties.HeadingLevel="Level1"
-                        FontSize="32"
-                        MinimumWidthRequest="100"/>
+            <Picker
+                    Title="All Nodes"
+                    FontSize="Large"
+                    ItemsSource="{Binding nodePicker}"
+                    SelectedIndexChanged="OnNodeChanged"
+                    HorizontalOptions="Center"/>
 
-                    <Picker x:Name="NodePicker"
-                            Title="All Nodes"
-                            FontSize="Large">
-                        <Picker.ItemsSource>
-                            <x:Array Type="{x:Type x:String}">
-                                <x:String>node 1</x:String>
-                                <x:String>node 2</x:String>
-                            </x:Array>
-                        </Picker.ItemsSource>
+            <VerticalStackLayout
+                Background="DimGray"
+                MinimumHeightRequest="600">
+                <GraphicsView x:Name="nodeGraph"
+                              MinimumHeightRequest="600"
+                              HorizontalOptions="Fill">
 
-                    </Picker>
-
-                </VerticalStackLayout>
-
-                <AbsoluteLayout
-                    HorizontalOptions="FillAndExpand"
-                    MinimumHeightRequest="300"
-                    MinimumWidthRequest="300"
-                    BackgroundColor="AliceBlue"
-                    Margin="100,0,0,0">
-                    <Image
-                        x:Name="NodeVisual"
-                        Source="dotnet_bot.png"
-                        AbsoluteLayout.LayoutBounds="0,0,50,50"
-                        SemanticProperties.Description="Cute dot net bot waving hi to you!">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTapGestureRecognizerDoubleTapped"
-                                                  NumberOfTapsRequired="2" />
-                            <TapGestureRecognizer Tapped="OnTapGestureRecognizerSingleTapped"
-                                                  NumberOfTapsRequired="1" />
-                            <DragGestureRecognizer DragStarting="OnDragRecognizer" />
-                            <DragGestureRecognizer DropCompleted="OnDropRecognizer" />
-                        </Image.GestureRecognizers>
-                    </Image>
-                </AbsoluteLayout>
-                
-            </FlexLayout>
-
+                    <GraphicsView.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="GraphTappedOnce" NumberOfTapsRequired="1"/>
+                    </GraphicsView.GestureRecognizers>
+                </GraphicsView>
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
     </ScrollView>

@@ -1,49 +1,54 @@
-﻿using Test_lekcja.Resources.Class;
+﻿using Microsoft.Maui.Controls;
+using Test_lekcja.Resources.Class;
 
 namespace Test_lekcja
 {
     public partial class MainPage : ContentPage
     {
-        Dictionary<int, Node> nodes;
         int nodeCountId;
-        int selectedNode;
+        string selectedNode;
+        Drawing d;
+        List<string> nodePicker;
 
         public MainPage()
         {
             InitializeComponent();
-            nodes = new Dictionary<int, Node>();
-            selectedNode = 0;
+            d = new Drawing();
+            nodePicker = new List<string>();
+            selectedNode = "";
+            nodeGraph.Drawable = d;
         }
 
         private void OnNodeAdd(object sender, EventArgs e)
         {
             Random random = new Random();
-            int lat = random.Next(100);
-            int lon = random.Next(100);
+            float lat = random.Next(15000) / 10;
+            float lon = random.Next(6000) / 10;
 
-            while (nodes.ContainsKey(nodeCountId)) nodeCountId++;
+            while (d.nodes.ContainsKey($"Node{nodeCountId}")) nodeCountId++;
 
-            nodes.Add(nodeCountId, new Node(lat, lon));
-            
+            d.nodes.Add($"Node{nodeCountId}", new Node(lat, lon));
             UpdateNodeList();
         }
 
         private void OnNodeDelete(object sender, EventArgs e)
         {
-            if (!nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty) return;
-            nodes.Remove(selectedNode);
+            if (!d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty) return;
+            d.nodes.Remove(selectedNode);
+            nodePicker.Remove(selectedNode);
 
             UpdateNodeList();
         }
 
         private void OnNodeAddWithId(object sender, EventArgs e)
         {
-            int nextLat = 0;
-            int nextLon = 0;
+            float nextLat = 0;
+            float nextLon = 0;
 
-            if (nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !Int32.TryParse(NodeLat.Text, out nextLat) || !Int32.TryParse(NodeLon.Text, out nextLon)) return;
-            
-            nodes.Add(selectedNode, new Node(nextLat, nextLon));
+            if (d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !float.TryParse(NodeLat.Text, out nextLat) || !float.TryParse(NodeLon.Text, out nextLon)) return;
+
+            d.nodes.Add(selectedNode, new Node(nextLat, nextLon));
+            nodePicker.Add(selectedNode);
             UpdateNodeList();
         }
 
@@ -52,26 +57,17 @@ namespace Test_lekcja
             int lat = 0;
             int lon = 0;
 
-            if (!nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !Int32.TryParse(NodeLat.Text, out lat) || !Int32.TryParse(NodeLon.Text, out lon)) return;
+            if (!d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !Int32.TryParse(NodeLat.Text, out lat) || !Int32.TryParse(NodeLon.Text, out lon)) return;
 
 
-            nodes[selectedNode].setLat(lat);
-            nodes[selectedNode].setLon(lon);
+            d.nodes[selectedNode].setLat(lat);
+            d.nodes[selectedNode].setLon(lon);
             UpdateNodeList();
         }
 
-        private void NodeIDInput(object sender, TextChangedEventArgs e)
+        private void OnNodeChanged(object sender, EventArgs e)
         {
-            Entry entry = (Entry)sender;
-
-            if (!int.TryParse(e.NewTextValue, out _))
-            {
-                entry.Text = new string(e.NewTextValue.Where(char.IsDigit).ToArray());
-                return;
-            }
-
-            if (entry.Text == string.Empty) return;
-               selectedNode = Int32.Parse(entry.Text);
+            Picker p = (Picker)sender;
         }
 
         private void NumberInput(object sender, TextChangedEventArgs e)
@@ -87,61 +83,69 @@ namespace Test_lekcja
 
         private void UpdateNodeList()
         {
-            NodeList.Text = "Node List: ";
+            nodeGraph.Invalidate();
+        }
 
-            foreach (int id in nodes.Keys)
+
+        //interakcja z grafem
+
+        private void GraphTappedOnce(object sender, TappedEventArgs e)
+        {
+            Point? clickedPoint = e.GetPosition(nodeGraph);
+            if (!clickedPoint.HasValue) return;
+            double x = clickedPoint.Value.X, y = clickedPoint.Value.Y;
+
+            Node currentNode = new Node();
+            bool madeOperation = false;
+            foreach (var node in d.nodes)
             {
-                NodeList.Text += $"\n{id} Node {nodes[id].getLat()} {nodes[id].getLon()}";
+                double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
+                if(distance < d.radius && d.focusedNode == "")
+                {
+                    ShowNodeInfo(node.Key);
+                    d.focusedNode = node.Key;
+
+                    madeOperation = true;
+                    break;
+                }
+                else if (distance < d.radius && d.focusedNode == node.Key)
+                {
+                    madeOperation = true;
+                    d.focusedNode = "";
+                    break;
+                }
+                else if (distance < d.radius && d.focusedNode != "" && d.focusedNode != node.Key)
+                {
+                    if (d.nodes[d.focusedNode].ContainsFriend(node.Key))
+                        d.nodes[d.focusedNode].RemoveFriend(node.Key);
+                    else 
+                        d.nodes[d.focusedNode].AddFriend(node.Key, 0);
+
+                    madeOperation = true;
+                    d.focusedNode = "";
+                    break;
+                }
+                else if (distance < 1.5f * d.radius)
+                {
+                    madeOperation = true;
+                    break;
+                }
             }
 
-            SemanticScreenReader.Announce(NodeList.Text);
-        }
-
-
-        //operowanie na obiekcie wyświetlanym
-        bool doubleTapped;
-        bool ignoreNextTap;
-        void OnTapGestureRecognizerDoubleTapped(object sender, TappedEventArgs args)
-        {
-            doubleTapped = true;
-        }
-        async void OnTapGestureRecognizerSingleTapped(object sender, TappedEventArgs args)
-        {
-            var delay = Task.Delay(100);
-            await delay;
-            if (ignoreNextTap)
+            if (!madeOperation && d.focusedNode == "")
             {
-                ignoreNextTap = false;
-                return;
+                d.nodes.Add("sdsd", new Node((float)x, (float)y));
+                d.focusedNode = "";
             }
-            if (doubleTapped)
-            {
-                doubleTapped = false;
-                ignoreNextTap = true;
-                NodeList.Text = "double tapped";
-            }
-            else
-            {
-                NodeList.Text = "single tapped";
-            }
+            else if (!madeOperation && d.focusedNode != "") d.focusedNode = "";
+
+            nodeGraph.Invalidate();
         }
 
-        void OnDragRecognizer(object sender, DragStartingEventArgs args) 
+
+        private void ShowNodeInfo(string nodeKey)
         {
-            NodeList.Text = "DragStart";
 
-            SemanticScreenReader.Announce(NodeList.Text);
         }
-        void OnDropRecognizer(object sender, DropCompletedEventArgs args) 
-        {
-            NodeList.Text = "Dropped";
-
-            NodeVisual.Layout(new Rect(100, 100, 50, 50));
-
-            
-            SemanticScreenReader.Announce(NodeList.Text);
-        }
-
     }
-
 }
