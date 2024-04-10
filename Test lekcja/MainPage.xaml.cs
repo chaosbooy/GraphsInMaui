@@ -6,54 +6,50 @@ namespace Test_lekcja
     public partial class MainPage : ContentPage
     {
         int nodeCountId;
-        string selectedNode;
         Drawing d;
-        List<string> nodePicker;
 
         public MainPage()
         {
             InitializeComponent();
             d = new Drawing();
-            nodePicker = new List<string>();
-            selectedNode = "";
             nodeGraph.Drawable = d;
         }
 
         private void OnNodeAdd(object sender, EventArgs e)
         {
             Random random = new Random();
-            float lat = random.Next(15000) / 10;
-            float lon = random.Next(6000) / 10;
+            float lat = random.Next((int)nodeGraph.Width * 10) / 10;
+            float lon = random.Next((int)nodeGraph.Height * 10) / 10;
 
-            while (d.nodes.ContainsKey($"Node{nodeCountId}")) nodeCountId++;
-
-            d.nodes.Add($"Node{nodeCountId}", new Node(lat, lon));
+            AddNextNode(null, lat, lon);
             UpdateNodeList();
         }
 
         private void OnNodeDelete(object sender, EventArgs e)
         {
+            string selectedNode = NodeId.Text.Trim();
+
             if (!d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty) return;
             d.nodes.Remove(selectedNode);
-            nodePicker.Remove(selectedNode);
 
             UpdateNodeList();
         }
 
         private void OnNodeAddWithId(object sender, EventArgs e)
         {
+            string selectedNode = NodeId.Text.Trim();
             float nextLat = 0;
             float nextLon = 0;
 
-            if (d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !float.TryParse(NodeLat.Text, out nextLat) || !float.TryParse(NodeLon.Text, out nextLon)) return;
+            if (d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim().Length < 4 || !float.TryParse(NodeLat.Text, out nextLat) || !float.TryParse(NodeLon.Text, out nextLon)) return;
 
-            d.nodes.Add(selectedNode, new Node(nextLat, nextLon));
-            nodePicker.Add(selectedNode);
+            AddNextNode(selectedNode, nextLat, nextLon);
             UpdateNodeList();
         }
 
         private void OnNodeChangeLocation(object sender, EventArgs e)
         {
+            string selectedNode = NodeId.Text.Trim();
             int lat = 0;
             int lon = 0;
 
@@ -86,25 +82,37 @@ namespace Test_lekcja
             nodeGraph.Invalidate();
         }
 
+        private void AddNextNode(string name, float x, float y)
+        {
+            if (name == null)
+            {
+                while (d.nodes.ContainsKey($"Node{nodeCountId}")) nodeCountId++;
+                d.nodes.Add($"Node{nodeCountId}", new Node(x, y));
+            }
+            else if (d.nodes.ContainsKey(name))
+            {
+                throw new Exception("LP.1: Key already exists");
+            }
+            else
+            {
+                d.nodes.Add(name, new Node(x, y));
+            }
+        }
 
         //interakcja z grafem
-
         private void GraphTappedOnce(object sender, TappedEventArgs e)
         {
             Point? clickedPoint = e.GetPosition(nodeGraph);
             if (!clickedPoint.HasValue) return;
             double x = clickedPoint.Value.X, y = clickedPoint.Value.Y;
 
-            Node currentNode = new Node();
             bool madeOperation = false;
             foreach (var node in d.nodes)
             {
                 double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
                 if(distance < d.radius && d.focusedNode == "")
                 {
-                    ShowNodeInfo(node.Key);  //JESZCZE NIE ISTNIEJE
                     d.focusedNode = node.Key;
-
                     madeOperation = true;
                     break;
                 }
@@ -125,27 +133,20 @@ namespace Test_lekcja
                     d.focusedNode = "";
                     break;
                 }
-                else if (distance < 1.5f * d.radius)
+                else if (distance < 2f * d.radius)
                 {
                     madeOperation = true;
-                    break;
                 }
             }
 
             if (!madeOperation && d.focusedNode == "")
             {
-                d.nodes.Add("sdsd", new Node((float)x, (float)y));  //DO POPRAWY 
+                AddNextNode(null, (float)x, (float)y);
                 d.focusedNode = "";
             }
             else if (!madeOperation && d.focusedNode != "") d.focusedNode = "";
 
-            nodeGraph.Invalidate();
-        }
-
-
-        private void ShowNodeInfo(string nodeKey)
-        {
-
+            UpdateNodeList();
         }
     }
 }

@@ -15,14 +15,16 @@
 
             foreach(var node in nodes)
             {
-                canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
-
-                foreach (var friend in node.Value.getFriends().Keys) {
+                foreach (var friend in node.Value.getFriends().Keys)
+                {
+                    if (!nodes.ContainsKey(friend)) nodes.Remove(friend);
 
                     var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
                     var end = new PointF(node.Value.getLat(), node.Value.getLon());
                     canvas.DrawLine(start, end);
                 }
+
+                canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
             }
 
             if(nodes.ContainsKey(focusedNode))
