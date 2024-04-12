@@ -6,7 +6,6 @@
     <HorizontalStackLayout
             Spacing="25"
             Padding="50,10"
-            VerticalOptions="Center"
             HorizontalOptions="CenterAndExpand">
 
             <VerticalStackLayout x:Name="infoBlock"
@@ -25,10 +24,11 @@
 
         <VerticalStackLayout
                     Background="DimGray"
-                    MinimumHeightRequest="300">
+                    MinimumHeightRequest="300"
+                    SizeChanged="OnSizeChanged">
             <GraphicsView x:Name="nodeGraph"
-                                  MinimumHeightRequest="600"
-                                  MinimumWidthRequest="1000">
+                            MinimumHeightRequest="600"
+                            MinimumWidthRequest="1000">
 
                 <GraphicsView.GestureRecognizers>
                     <TapGestureRecognizer Tapped="GraphTappedOnce" NumberOfTapsRequired="1"/>

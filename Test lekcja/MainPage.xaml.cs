@@ -42,27 +42,30 @@ namespace Test_lekcja
             UpdateNodeList();
         }
 
+        private void OnSizeChanged(object sender, EventArgs e)
+        {
+            var layout = (VerticalStackLayout)sender;
+            nodeGraph.HeightRequest = layout.Height;
+        }
 
         //interakcja z grafem
 
         private void UpdateNodeList()
         {
             nodeGraph.Invalidate();
-            for (int i = 1; i < infoBlock.Children.Count; i++) infoBlock.Children.RemoveAt(i);
+            infoBlock.Children.Clear();
+            infoBlock.Children.Add(infoTitle);
 
-            if (d.focusedNode == "")
+            if (!d.nodes.ContainsKey(d.focusedNode))
             {
-                infoTitle.Text = "Node List";
+                infoTitle.Text = $"Node List {infoBlock.Children.Count}";
 
                 var scrollView = new ScrollView
                 {
-                    HeightRequest = 400,
+                    HeightRequest = 600,
                 };
 
-                var verticalLayout = new VerticalStackLayout
-                {
-                    HorizontalOptions = LayoutOptions.Start,
-                };
+                var verticalLayout = new VerticalStackLayout();
                 foreach (var node in d.nodes.Keys)
                 {
                     var label = new Label
@@ -90,13 +93,13 @@ namespace Test_lekcja
             }
             else
             {
-                infoTitle.Text = d.focusedNode;
+                infoTitle.Text = $"{d.focusedNode} {infoBlock.Children.Count}";
 
-                var scrollView = new ScrollView();
-                var verticalLayout = new VerticalStackLayout 
+                var scrollView = new ScrollView
                 {
-                    HeightRequest = infoBlock.Height,
+                    HeightRequest = 500,
                 };
+                var verticalLayout = new VerticalStackLayout();
                 foreach (var friend in d.nodes[d.focusedNode].getFriends().Keys)
                 {
                     var label = new Label
@@ -119,29 +122,36 @@ namespace Test_lekcja
                     verticalLayout.Add(label);
                 }
 
+                int buttonHeight = 40;
                 var removeButton = new Button
                 {
                     Text = "Delete",
                     TextColor = Colors.WhiteSmoke,
                     BackgroundColor = Colors.DarkRed,
+                    HeightRequest = buttonHeight,
                 };
                 var changeLocationButton = new Button
                 {
                     Text = "Edit Location",
+                    HeightRequest = buttonHeight,
                 };
                 var changeNameButton = new Button
                 {
                     Text = "Edit Name",
+                    HeightRequest = buttonHeight,
                 };
-                var horizontalLayout = new HorizontalStackLayout();
+                var horizontalLayout = new FlexLayout
+                {
+                    HeightRequest = 100,
+                };
                 horizontalLayout.Children.Add(changeNameButton);
                 horizontalLayout.Children.Add(changeLocationButton);
                 horizontalLayout.Children.Add(removeButton);
 
 
                 scrollView.Content = verticalLayout;
-                infoBlock.Children.Add(scrollView);
                 infoBlock.Children.Add(horizontalLayout);
+                infoBlock.Children.Add(scrollView);
             }
         }
 
