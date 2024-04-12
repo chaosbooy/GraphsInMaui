@@ -3,106 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Test_lekcja.MainPage">
 
-    <ScrollView>
-        <VerticalStackLayout
+    <HorizontalStackLayout
             Spacing="25"
-            Padding="50,30"
-            HorizontalOptions="Center">
-            
-            <VerticalStackLayout
-                Background="DimGray"
-                MinimumHeightRequest="300">
-                <GraphicsView x:Name="nodeGraph"
-                              MinimumHeightRequest="600"
-                              HorizontalOptions="Fill">
+            Padding="50,10"
+            VerticalOptions="Center"
+            HorizontalOptions="CenterAndExpand">
 
-                    <GraphicsView.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="GraphTappedOnce" NumberOfTapsRequired="1"/>
-                    </GraphicsView.GestureRecognizers>
-                </GraphicsView>
+            <VerticalStackLayout x:Name="infoBlock"
+                                    WidthRequest="400">
+
+                <Label x:Name="infoTitle" 
+                           Text="Node List"
+                           HorizontalTextAlignment="Center"
+                           FontSize="Header">
+
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="InfoTitleTapped" NumberOfTapsRequired="1" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
 
-            <FlexLayout
-    HorizontalOptions="Center"
-    AlignContent="Stretch"
-    JustifyContent="Center"
-    Direction="Row"
-    Wrap="Wrap">
+        <VerticalStackLayout
+                    Background="DimGray"
+                    MinimumHeightRequest="300">
+            <GraphicsView x:Name="nodeGraph"
+                                  MinimumHeightRequest="600"
+                                  MinimumWidthRequest="1000">
 
-                <VerticalStackLayout
-        Margin="5">
-                    <Label
-            Text="Selected node"
-            FontSize="Small"
-            HorizontalOptions="Center"/>
-
-                    <Entry
-            x:Name="NodeId"
-            MaxLength="10"
-            HorizontalTextAlignment="Center"
-            Text=""/>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout
-        Margin="5">
-                    <Label
-            Text="lat"
-            FontSize="Small"
-            HorizontalOptions="Center"/>
-
-                    <Entry
-            x:Name="NodeLat"
-            MaxLength="20"
-            Keyboard="Numeric"
-            TextChanged="NumberInput"
-            Text=""/>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout
-        Margin="5">
-                    <Label
-            Text="lon"
-            FontSize="Small"
-            HorizontalOptions="Center"/>
-
-                    <Entry
-            x:Name="NodeLon"
-            MaxLength="3"
-            Keyboard="Numeric"
-            TextChanged="NumberInput"
-            Text=""/>
-                </VerticalStackLayout>
-
-                <Button
-        Text="Add Node"
-        SemanticProperties.Hint="Adds a node with specified position and id"
-        Clicked="OnNodeAddWithId"
-        VerticalOptions="Center"
-        Margin="10"/>
-
-                <Button
-        Text="Add random Node"
-        SemanticProperties.Hint="Adds a node with random position"
-        Clicked="OnNodeAdd"
-        VerticalOptions="Center"
-        Margin="10"/>
-
-                <Button
-        Text="Delete Node"
-        SemanticProperties.Hint="Deletes the selected node"
-        Clicked="OnNodeDelete"
-        VerticalOptions="Center"
-        Margin="10"/>
-
-                <Button
-        Text="Change Node Location"
-        SemanticProperties.Hint="Changes the location of the specified (with id) node"
-        Clicked="OnNodeChangeLocation"
-        VerticalOptions="Center"
-        Margin="10"/>
-
-            </FlexLayout>
-
+                <GraphicsView.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="GraphTappedOnce" NumberOfTapsRequired="1"/>
+                </GraphicsView.GestureRecognizers>
+            </GraphicsView>
         </VerticalStackLayout>
-    </ScrollView>
+    </HorizontalStackLayout>
 </ContentPage>

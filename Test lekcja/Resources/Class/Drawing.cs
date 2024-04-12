@@ -1,4 +1,6 @@
-﻿namespace Test_lekcja.Resources.Class
+﻿using Microsoft.Maui.Graphics;
+
+namespace Test_lekcja.Resources.Class
 {
     internal class Drawing : IDrawable
     {
@@ -32,6 +34,12 @@
                 canvas.StrokeSize = 5;
                 canvas.StrokeColor = Colors.Blue;
                 canvas.DrawCircle(nodes[focusedNode].getLat(), nodes[focusedNode].getLon(), radius - 2.5f);
+
+                canvas.StrokeColor = Colors.LightBlue;
+                foreach(var friend in nodes[focusedNode].getFriends().Keys)
+                {
+                    canvas.DrawCircle(nodes[friend].getLat(), nodes[friend].getLon(), radius - 2.5f);
+                }
             }
         }
     }

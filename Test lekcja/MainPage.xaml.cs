@@ -15,73 +15,6 @@ namespace Test_lekcja
             nodeGraph.Drawable = d;
         }
 
-        private void OnNodeAdd(object sender, EventArgs e)
-        {
-            Random random = new Random();
-            float lat = random.Next((int)nodeGraph.Width * 10) / 10;
-            float lon = random.Next((int)nodeGraph.Height * 10) / 10;
-
-            AddNextNode(null, lat, lon);
-            UpdateNodeList();
-        }
-
-        private void OnNodeDelete(object sender, EventArgs e)
-        {
-            string selectedNode = NodeId.Text.Trim();
-
-            if (!d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty) return;
-            d.nodes.Remove(selectedNode);
-
-            UpdateNodeList();
-        }
-
-        private void OnNodeAddWithId(object sender, EventArgs e)
-        {
-            string selectedNode = NodeId.Text.Trim();
-            float nextLat = 0;
-            float nextLon = 0;
-
-            if (d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim().Length < 4 || !float.TryParse(NodeLat.Text, out nextLat) || !float.TryParse(NodeLon.Text, out nextLon)) return;
-
-            AddNextNode(selectedNode, nextLat, nextLon);
-            UpdateNodeList();
-        }
-
-        private void OnNodeChangeLocation(object sender, EventArgs e)
-        {
-            string selectedNode = NodeId.Text.Trim();
-            int lat = 0;
-            int lon = 0;
-
-            if (!d.nodes.ContainsKey(selectedNode) || NodeId.Text.Trim() == string.Empty || !Int32.TryParse(NodeLat.Text, out lat) || !Int32.TryParse(NodeLon.Text, out lon)) return;
-
-
-            d.nodes[selectedNode].setLat(lat);
-            d.nodes[selectedNode].setLon(lon);
-            UpdateNodeList();
-        }
-
-        private void OnNodeChanged(object sender, EventArgs e)
-        {
-            Picker p = (Picker)sender;
-        }
-
-        private void NumberInput(object sender, TextChangedEventArgs e)
-        {
-            Entry entry = (Entry)sender;
-
-            if (!int.TryParse(e.NewTextValue, out _))
-            {
-                entry.Text = new string(e.NewTextValue.Where(char.IsDigit).ToArray());
-                return;
-            }
-        }
-
-        private void UpdateNodeList()
-        {
-            nodeGraph.Invalidate();
-        }
-
         private void AddNextNode(string name, float x, float y)
         {
             if (name == null)
@@ -99,7 +32,119 @@ namespace Test_lekcja
             }
         }
 
+        private void OnNodeAdd(object sender, EventArgs e)
+        {
+            Random random = new Random();
+            float lat = random.Next((int)nodeGraph.Width * 10) / 10;
+            float lon = random.Next((int)nodeGraph.Height * 10) / 10;
+
+            AddNextNode(null, lat, lon);
+            UpdateNodeList();
+        }
+
+
         //interakcja z grafem
+
+        private void UpdateNodeList()
+        {
+            nodeGraph.Invalidate();
+            for (int i = 1; i < infoBlock.Children.Count; i++) infoBlock.Children.RemoveAt(i);
+
+            if (d.focusedNode == "")
+            {
+                infoTitle.Text = "Node List";
+
+                var scrollView = new ScrollView
+                {
+                    HeightRequest = 400,
+                };
+
+                var verticalLayout = new VerticalStackLayout
+                {
+                    HorizontalOptions = LayoutOptions.Start,
+                };
+                foreach (var node in d.nodes.Keys)
+                {
+                    var label = new Label
+                    {
+                        Text = node,
+                        FontSize = 30,
+                        HorizontalOptions = LayoutOptions.Fill,
+                        Padding = 3,
+                        Margin = 7,
+                    };
+                    var tapLabel = new TapGestureRecognizer();
+                    tapLabel.Tapped += (s, e) =>
+                    {
+                        d.focusedNode = node;
+                        UpdateNodeList();
+                    };
+
+                    label.GestureRecognizers.Add(tapLabel);
+
+                    verticalLayout.Add(label);
+                }
+
+                scrollView.Content = verticalLayout;
+                infoBlock.Children.Add(scrollView);
+            }
+            else
+            {
+                infoTitle.Text = d.focusedNode;
+
+                var scrollView = new ScrollView();
+                var verticalLayout = new VerticalStackLayout 
+                {
+                    HeightRequest = infoBlock.Height,
+                };
+                foreach (var friend in d.nodes[d.focusedNode].getFriends().Keys)
+                {
+                    var label = new Label
+                    {
+                        Text = friend,
+                        FontSize = 30,
+                        HorizontalOptions = LayoutOptions.Fill,
+                        Padding = 3,
+                        Margin = 7,
+                    };
+                    var tapLabel = new TapGestureRecognizer();
+                    tapLabel.Tapped += (s, e) =>
+                    {
+                        d.focusedNode = friend;
+                        UpdateNodeList();
+                    };
+
+                    label.GestureRecognizers.Add(tapLabel);
+
+                    verticalLayout.Add(label);
+                }
+
+                var removeButton = new Button
+                {
+                    Text = "Delete",
+                    TextColor = Colors.WhiteSmoke,
+                    BackgroundColor = Colors.DarkRed,
+                };
+                var changeLocationButton = new Button
+                {
+                    Text = "Edit Location",
+                };
+                var changeNameButton = new Button
+                {
+                    Text = "Edit Name",
+                };
+                var horizontalLayout = new HorizontalStackLayout();
+                horizontalLayout.Children.Add(changeNameButton);
+                horizontalLayout.Children.Add(changeLocationButton);
+                horizontalLayout.Children.Add(removeButton);
+
+
+                scrollView.Content = verticalLayout;
+                infoBlock.Children.Add(scrollView);
+                infoBlock.Children.Add(horizontalLayout);
+            }
+        }
+
         private void GraphTappedOnce(object sender, TappedEventArgs e)
         {
             Point? clickedPoint = e.GetPosition(nodeGraph);
@@ -130,7 +175,6 @@ namespace Test_lekcja
                         d.nodes[d.focusedNode].AddFriend(node.Key, 0);
 
                     madeOperation = true;
-                    d.focusedNode = "";
                     break;
                 }
                 else if (distance < 2f * d.radius)
@@ -146,6 +190,12 @@ namespace Test_lekcja
             }
             else if (!madeOperation && d.focusedNode != "") d.focusedNode = "";
 
+            UpdateNodeList();
+        }
+
+        private void InfoTitleTapped(object sender, TappedEventArgs e)
+        {
+            d.focusedNode = "";
             UpdateNodeList();
         }
     }
