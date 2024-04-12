@@ -42,6 +42,13 @@ namespace Test_lekcja
             UpdateNodeList();
         }
 
+        private void RemoveNode(string name)
+        {
+            d.focusedNode = "";
+            if(d.nodes.ContainsKey(name)) d.nodes.Remove(name);
+            UpdateNodeList();
+        }
+
         private void OnSizeChanged(object sender, EventArgs e)
         {
             var layout = (VerticalStackLayout)sender;
@@ -58,13 +65,17 @@ namespace Test_lekcja
 
             if (!d.nodes.ContainsKey(d.focusedNode))
             {
-                infoTitle.Text = $"Node List {infoBlock.Children.Count}";
+                infoTitle.Text = $"Node List";
 
                 var scrollView = new ScrollView
                 {
-                    HeightRequest = 600,
+                    HeightRequest = nodeGraph.Height - 70,
                 };
 
+                nodeGraph.SizeChanged += (s, e) =>
+                {
+                    scrollView.HeightRequest = this.nodeGraph.Height - 70;
+                };
                 var verticalLayout = new VerticalStackLayout();
                 foreach (var node in d.nodes.Keys)
                 {
@@ -93,11 +104,15 @@ namespace Test_lekcja
             }
             else
             {
-                infoTitle.Text = $"{d.focusedNode} {infoBlock.Children.Count}";
+                infoTitle.Text = $"{d.focusedNode}";
 
                 var scrollView = new ScrollView
                 {
-                    HeightRequest = 500,
+                    HeightRequest = nodeGraph.Height - 150,
+                };
+                nodeGraph.SizeChanged += (s, e) =>
+                {
+                    scrollView.HeightRequest = this.nodeGraph.Height - 150;
                 };
                 var verticalLayout = new VerticalStackLayout();
                 foreach (var friend in d.nodes[d.focusedNode].getFriends().Keys)
@@ -129,6 +144,11 @@ namespace Test_lekcja
                     TextColor = Colors.WhiteSmoke,
                     BackgroundColor = Colors.DarkRed,
                     HeightRequest = buttonHeight,
+                    Margin = new Thickness(40,0,0,0),
+                };
+                removeButton.Clicked += (s, e) =>
+                {
+                    RemoveNode(d.focusedNode);
                 };
                 var changeLocationButton = new Button
                 {
@@ -148,10 +168,9 @@ namespace Test_lekcja
                 horizontalLayout.Children.Add(changeLocationButton);
                 horizontalLayout.Children.Add(removeButton);
 
-
                 scrollView.Content = verticalLayout;
-                infoBlock.Children.Add(horizontalLayout);
                 infoBlock.Children.Add(scrollView);
+                infoBlock.Children.Add(horizontalLayout);
             }
         }
 
