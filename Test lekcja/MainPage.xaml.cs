@@ -1,4 +1,6 @@
 ﻿using Microsoft.Maui.Controls;
+using System.Diagnostics;
+using System.Xml.Linq;
 using Test_lekcja.Resources.Class;
 
 namespace Test_lekcja
@@ -13,6 +15,7 @@ namespace Test_lekcja
             InitializeComponent();
             d = new Drawing();
             nodeGraph.Drawable = d;
+            changeLocationNode = "";
         }
 
         private void AddNextNode(string name, float x, float y)
@@ -42,13 +45,6 @@ namespace Test_lekcja
             UpdateNodeList();
         }
 
-        private void RemoveNode(string name)
-        {
-            d.focusedNode = "";
-            if(d.nodes.ContainsKey(name)) d.nodes.Remove(name);
-            UpdateNodeList();
-        }
-
         private void OnSizeChanged(object sender, EventArgs e)
         {
             var layout = (VerticalStackLayout)sender;
@@ -56,6 +52,7 @@ namespace Test_lekcja
         }
 
         //interakcja z grafem
+        private string changeLocationNode;
 
         private void UpdateNodeList()
         {
@@ -146,20 +143,19 @@ namespace Test_lekcja
                     HeightRequest = buttonHeight,
                     Margin = new Thickness(40,0,0,0),
                 };
-                removeButton.Clicked += (s, e) =>
-                {
-                    RemoveNode(d.focusedNode);
-                };
+                removeButton.Clicked += ConfirmDelete;
                 var changeLocationButton = new Button
                 {
                     Text = "Edit Location",
                     HeightRequest = buttonHeight,
                 };
+                changeLocationButton.Clicked += LocationChange;
                 var changeNameButton = new Button
                 {
                     Text = "Edit Name",
                     HeightRequest = buttonHeight,
                 };
+                changeNameButton.Clicked += NameChange;
                 var horizontalLayout = new FlexLayout
                 {
                     HeightRequest = 100,
@@ -169,7 +165,7 @@ namespace Test_lekcja
                 horizontalLayout.Children.Add(removeButton);
 
                 scrollView.Content = verticalLayout;
-                infoBlock.Children.Add(scrollView);
+                infoBlock.Children.Add(scrollView); 
                 infoBlock.Children.Add(horizontalLayout);
             }
         }
@@ -179,6 +175,14 @@ namespace Test_lekcja
             Point? clickedPoint = e.GetPosition(nodeGraph);
             if (!clickedPoint.HasValue) return;
             double x = clickedPoint.Value.X, y = clickedPoint.Value.Y;
+
+            if (changeLocationNode.Length > 0)
+            {
+                d.nodes[changeLocationNode].setLat((float)x);
+                d.nodes[changeLocationNode].setLon((float)y);
+
+                return;
+            }
 
             bool madeOperation = false;
             foreach (var node in d.nodes)
@@ -226,6 +230,30 @@ namespace Test_lekcja
         {
             d.focusedNode = "";
             UpdateNodeList();
+        }
+
+        private async void ConfirmDelete(object sender, EventArgs e)
+        {
+            bool answer = await DisplayAlert("Confirmation", $"Do you really want to delete node {d.focusedNode}", "Yes", "No");
+
+            if (answer) 
+            {
+                if (d.nodes.ContainsKey(d.focusedNode)) d.nodes.Remove(d.focusedNode);
+                d.focusedNode = "";
+                UpdateNodeList();
+            }
+        }
+
+        private async void NameChange(object sender, EventArgs e)
+        {
+            string result = await DisplayPromptAsync("Name Changer", "Write the new node name");
+        }
+
+        private async void LocationChange(object sender, EventArgs e)
+        {
+            await DisplayAlert("Alert", "Click anywhere to change the location of the node", "OK");
+
+            changeLocationNode = d.focusedNode;
         }
     }
 }
