@@ -51,5 +51,9 @@
         public void setLon(float lon) {  this.lon = lon; }
 
         public Dictionary<string, int> getFriends() { return friends; }
+
+        public void ClearFriends() { friends.Clear(); }
+
+        public void ReplaceFriends(Dictionary<string, int> newFriends) { friends = newFriends; }
     }
 }

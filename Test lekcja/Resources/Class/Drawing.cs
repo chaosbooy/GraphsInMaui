@@ -8,6 +8,7 @@ namespace Test_lekcja.Resources.Class
         public Dictionary<string, string> changedNames = new Dictionary<string, string>();
         public float radius = 10f;
         public string focusedNode = "";
+        public string changeLocationNode;
 
         public void Draw(ICanvas canvas, RectF rect)
         {
@@ -15,31 +16,50 @@ namespace Test_lekcja.Resources.Class
             canvas.StrokeSize = 5;
             canvas.FillColor = Colors.White;
 
+            if(changeLocationNode != "")
+            {
+                canvas.FillColor = Colors.Red;
+                foreach (var node in nodes)
+                {
+                    if (node.Key == changeLocationNode) continue;
+
+                    canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius * 2);
+                }
+
+                return;
+            }
 
             foreach(var node in nodes)
             {
+                {
+                    var newFriends = new Dictionary<string, int>();
+                    foreach (var friend in node.Value.getFriends().Keys)
+                    {
+                        string tmpf = friend;
+                        if (nodes.ContainsKey(friend) && !changedNames.ContainsKey(friend))
+                        {
+                            newFriends.Add(tmpf,node.Value.getFriends()[friend]);
+                        }
+                        else if (changedNames.ContainsKey(friend))
+                        {
+                            tmpf = changedNames[friend];
+
+                            int tmp = node.Value.getFriends()[friend];
+                            newFriends.Add(tmpf, tmp);
+                        }
+                    }
+                    node.Value.ReplaceFriends(newFriends);
+                }
+
                 foreach (var friend in node.Value.getFriends().Keys)
                 {
-                    string tmpf = friend;
-                    if (!nodes.ContainsKey(friend) && !changedNames.ContainsKey(friend))
-                    {
-                        node.Value.RemoveFriend(friend);
-                        continue;
-                    } 
-                    else  if (changedNames.ContainsKey(friend))
-                    {
-                        node.Key.Replace(friend, changedNames[friend]);
-                        tmpf = friend;
-                    }
-
-                    var start = new PointF(nodes[tmpf].getLat(), nodes[tmpf].getLon());
+                    var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
                     var end = new PointF(node.Value.getLat(), node.Value.getLon());
                     canvas.DrawLine(start, end);
                 }
 
                 canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
             }
-
             changedNames.Clear();
 
             if(nodes.ContainsKey(focusedNode))

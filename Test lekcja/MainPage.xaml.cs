@@ -15,7 +15,7 @@ namespace Test_lekcja
             InitializeComponent();
             d = new Drawing();
             nodeGraph.Drawable = d;
-            changeLocationNode = "";
+            d.changeLocationNode = "";
         }
 
         private void AddNextNode(string name, float x, float y)
@@ -52,7 +52,6 @@ namespace Test_lekcja
         }
 
         //interakcja z grafem
-        private string changeLocationNode;
 
         private void UpdateNodeList()
         {
@@ -170,17 +169,34 @@ namespace Test_lekcja
             }
         }
 
-        private void GraphTappedOnce(object sender, TappedEventArgs e)
+        private async void GraphTappedOnce(object sender, TappedEventArgs e)
         {
             Point? clickedPoint = e.GetPosition(nodeGraph);
             if (!clickedPoint.HasValue) return;
             double x = clickedPoint.Value.X, y = clickedPoint.Value.Y;
 
-            if (changeLocationNode.Length > 0)
+            if (d.changeLocationNode != "")
             {
-                d.nodes[changeLocationNode].setLat((float)x);
-                d.nodes[changeLocationNode].setLon((float)y);
+                bool obstacle = false;
 
+                foreach (var node in d.nodes)
+                    if (node.Key != d.changeLocationNode && Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2)) < d.radius * 2)
+                    {
+                        obstacle = true;
+                        break;
+                    }
+
+                if (obstacle)
+                {
+                    await DisplayAlert("Error", $"You are moving {d.focusedNode} too close to another node. Try again", "OK");
+                    return;
+                }
+                
+                d.nodes[d.changeLocationNode].setLat((float)x);
+                d.nodes[d.changeLocationNode].setLon((float)y);
+
+                d.changeLocationNode = "";
+                UpdateNodeList();
                 return;
             }
 
@@ -240,20 +256,36 @@ namespace Test_lekcja
             {
                 if (d.nodes.ContainsKey(d.focusedNode)) d.nodes.Remove(d.focusedNode);
                 d.focusedNode = "";
+                d.changeLocationNode = null;
                 UpdateNodeList();
             }
         }
 
         private async void NameChange(object sender, EventArgs e)
         {
-            string result = await DisplayPromptAsync("Name Changer", "Write the new node name");
+            string result = await DisplayPromptAsync("Name Changer", "Write the new node name. To cancel write nothing");
+            result.Trim();
+
+            if (result == "") return;
+            else if (d.changedNames.ContainsValue(d.focusedNode)) d.changedNames[d.changedNames.First(x => x.Value == d.focusedNode).Key] = result;
+            else d.changedNames.Add(d.focusedNode, result);
+
+            var node = d.nodes[d.focusedNode];
+            d.nodes.Remove(d.focusedNode);
+            d.nodes.Add(result, node);
+
+            d.focusedNode = result;
+
+            UpdateNodeList();
+            
         }
 
         private async void LocationChange(object sender, EventArgs e)
         {
             await DisplayAlert("Alert", "Click anywhere to change the location of the node", "OK");
 
-            changeLocationNode = d.focusedNode;
+            d.changeLocationNode = (d.changeLocationNode == "") ? d.focusedNode : "";
+            nodeGraph.Invalidate();
         }
     }
 }
