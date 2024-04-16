@@ -140,7 +140,7 @@ namespace Test_lekcja
                     TextColor = Colors.WhiteSmoke,
                     BackgroundColor = Colors.DarkRed,
                     HeightRequest = buttonHeight,
-                    Margin = new Thickness(40,0,0,0),
+                    Margin = new Thickness(40, 0, 0, 0),
                 };
                 removeButton.Clicked += ConfirmDelete;
                 var changeLocationButton = new Button
@@ -164,7 +164,7 @@ namespace Test_lekcja
                 horizontalLayout.Children.Add(removeButton);
 
                 scrollView.Content = verticalLayout;
-                infoBlock.Children.Add(scrollView); 
+                infoBlock.Children.Add(scrollView);
                 infoBlock.Children.Add(horizontalLayout);
             }
         }
@@ -191,7 +191,7 @@ namespace Test_lekcja
                     await DisplayAlert("Error", $"You are moving {d.focusedNode} too close to another node. Try again", "OK");
                     return;
                 }
-                
+
                 d.nodes[d.changeLocationNode].setLat((float)x);
                 d.nodes[d.changeLocationNode].setLon((float)y);
 
@@ -204,7 +204,7 @@ namespace Test_lekcja
             foreach (var node in d.nodes)
             {
                 double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
-                if(distance < d.radius && d.focusedNode == "")
+                if (distance < d.radius && d.focusedNode == "")
                 {
                     d.focusedNode = node.Key;
                     madeOperation = true;
@@ -220,7 +220,7 @@ namespace Test_lekcja
                 {
                     if (d.nodes[d.focusedNode].ContainsFriend(node.Key))
                         d.nodes[d.focusedNode].RemoveFriend(node.Key);
-                    else 
+                    else
                         d.nodes[d.focusedNode].AddFriend(node.Key, 0);
 
                     madeOperation = true;
@@ -252,7 +252,7 @@ namespace Test_lekcja
         {
             bool answer = await DisplayAlert("Confirmation", $"Do you really want to delete node {d.focusedNode}", "Yes", "No");
 
-            if (answer) 
+            if (answer)
             {
                 if (d.nodes.ContainsKey(d.focusedNode)) d.nodes.Remove(d.focusedNode);
                 d.focusedNode = "";
@@ -277,7 +277,7 @@ namespace Test_lekcja
             d.focusedNode = result;
 
             UpdateNodeList();
-            
+
         }
 
         private async void LocationChange(object sender, EventArgs e)
@@ -287,5 +287,56 @@ namespace Test_lekcja
             d.changeLocationNode = (d.changeLocationNode == "") ? d.focusedNode : "";
             nodeGraph.Invalidate();
         }
+
+        private List<string> GetFastestRoute(string start, string stop)
+        {
+            var ranking = new List<Improvised>();
+            var history = new List<string>();
+            float distance = EvaluateDistance(d.nodes[start], d.nodes[stop]);
+
+            ranking.Add(new Improvised
+            {
+                path = new List<string> { start },
+                dist = distance,
+            });
+
+            while (ranking.Count > 0)
+            {
+                List<string> bestRoute = ranking[0].path;
+                float onlyPoints = ranking[0].dist - EvaluateDistance(d.nodes[bestRoute[bestRoute.Count - 1]], d.nodes[stop]);
+                history.Add(bestRoute[bestRoute.Count - 1]);
+                ranking.RemoveAt(0);
+                foreach(var friend in d.nodes[bestRoute[bestRoute.Count - 1]].getFriends())
+                {
+                    if (history.Contains(friend.Key)) continue;
+                    else if(friend.Key == stop)
+                    {
+                        bestRoute.Add(stop);
+                        return bestRoute;
+                    }
+
+                    List<string> next = bestRoute;
+                    next.Add(friend.Key);
+                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints + friend.Value;
+
+                    ranking.Add(new Improvised
+                    {
+                        dist = distance,
+                        path = next,
+                    });
+                }
+
+                ranking.Sort((x, y) => x.dist.CompareTo(y.dist));
+            }
+
+            return null;
+        }
+
+        private float EvaluateDistance(Node first, Node second) { return (float)Math.Sqrt(Math.Pow(first.getLat() - second.getLat(), 2) + Math.Pow(first.getLon() - second.getLon(), 2)); }
     }
+}
+public struct Improvised
+{
+    public List<string> path;
+    public float dist;
 }
