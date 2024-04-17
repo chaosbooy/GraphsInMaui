@@ -3,13 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Test_lekcja.MainPage">
 
+    
     <HorizontalStackLayout
             Spacing="25"
             Padding="50,10"
             HorizontalOptions="CenterAndExpand">
 
             <VerticalStackLayout x:Name="infoBlock"
-                                    WidthRequest="400">
+                                    WidthRequest="440">
 
                 <Label x:Name="infoTitle" 
                            Text="Node List"

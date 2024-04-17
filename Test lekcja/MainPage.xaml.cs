@@ -8,6 +8,7 @@ namespace Test_lekcja
     public partial class MainPage : ContentPage
     {
         int nodeCountId;
+        bool searching;
         Drawing d;
 
         public MainPage()
@@ -49,6 +50,11 @@ namespace Test_lekcja
         {
             var layout = (VerticalStackLayout)sender;
             nodeGraph.HeightRequest = layout.Height;
+        }
+
+        private async void RouteClicked(object sender, EventArgs e)
+        {
+            
         }
 
         //interakcja z grafem
@@ -140,7 +146,7 @@ namespace Test_lekcja
                     TextColor = Colors.WhiteSmoke,
                     BackgroundColor = Colors.DarkRed,
                     HeightRequest = buttonHeight,
-                    Margin = new Thickness(40, 0, 0, 0),
+                    Margin = new Thickness(30, 0, 0, 0),
                 };
                 removeButton.Clicked += ConfirmDelete;
                 var changeLocationButton = new Button
@@ -155,12 +161,21 @@ namespace Test_lekcja
                     HeightRequest = buttonHeight,
                 };
                 changeNameButton.Clicked += NameChange;
+                var routeButton = new Button
+                {
+                    Text = "Find Route",
+                    TextColor = Colors.WhiteSmoke,
+                    BackgroundColor = Colors.Green,
+                    HeightRequest = buttonHeight,
+                };
+                routeButton.Clicked += RouteClicked;
                 var horizontalLayout = new FlexLayout
                 {
                     HeightRequest = 100,
                 };
                 horizontalLayout.Children.Add(changeNameButton);
                 horizontalLayout.Children.Add(changeLocationButton);
+                horizontalLayout.Children.Add(routeButton);
                 horizontalLayout.Children.Add(removeButton);
 
                 scrollView.Content = verticalLayout;
@@ -198,6 +213,25 @@ namespace Test_lekcja
                 d.changeLocationNode = "";
                 UpdateNodeList();
                 return;
+            }
+            else if (searching)
+            {
+                foreach(var node in d.nodes)
+                {
+                    double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
+                    if (distance < d.radius)
+                    {
+                        if (node.Key == d.focusedNode) { searching = false; break; }
+                        try
+                        {
+                            GetFastestRoute(d.focusedNode, node.Key);
+                        }
+                        catch (Exception ex)
+                        {
+                            await DisplayAlert("Error", ex.Message, "OK");
+                        }
+                    }
+                }
             }
 
             bool madeOperation = false;
@@ -256,7 +290,7 @@ namespace Test_lekcja
             {
                 if (d.nodes.ContainsKey(d.focusedNode)) d.nodes.Remove(d.focusedNode);
                 d.focusedNode = "";
-                d.changeLocationNode = null;
+                d.changeLocationNode = "";
                 UpdateNodeList();
             }
         }
@@ -267,8 +301,7 @@ namespace Test_lekcja
             result.Trim();
 
             if (result == "") return;
-            else if (d.changedNames.ContainsValue(d.focusedNode)) d.changedNames[d.changedNames.First(x => x.Value == d.focusedNode).Key] = result;
-            else d.changedNames.Add(d.focusedNode, result);
+            d.changedNames = (d.focusedNode, result);
 
             var node = d.nodes[d.focusedNode];
             d.nodes.Remove(d.focusedNode);
@@ -317,7 +350,8 @@ namespace Test_lekcja
 
                     List<string> next = bestRoute;
                     next.Add(friend.Key);
-                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints + friend.Value;
+                    var nextDistance = EvaluateDistance(d.nodes[friend.Key], d.nodes[bestRoute[bestRoute.Count - 1]]);
+                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints + friend.Value + nextDistance;
 
                     ranking.Add(new Improvised
                     {
@@ -329,7 +363,7 @@ namespace Test_lekcja
                 ranking.Sort((x, y) => x.dist.CompareTo(y.dist));
             }
 
-            return null;
+            throw new Exception($"There is no path from {start} to {stop}");
         }
 
         private float EvaluateDistance(Node first, Node second) { return (float)Math.Sqrt(Math.Pow(first.getLat() - second.getLat(), 2) + Math.Pow(first.getLon() - second.getLon(), 2)); }
