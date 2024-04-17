@@ -8,8 +8,8 @@ namespace Test_lekcja
     public partial class MainPage : ContentPage
     {
         int nodeCountId;
-        bool searching;
         Drawing d;
+        bool whichRoute; //true - fastest/false - shortest
 
         public MainPage()
         {
@@ -54,7 +54,9 @@ namespace Test_lekcja
 
         private async void RouteClicked(object sender, EventArgs e)
         {
-            
+            d.fastestPath.Add(d.focusedNode);
+
+            whichRoute = await DisplayAlert("Route Selection", "Which route do you wanna take", "Fastest", "Shortest");
         }
 
         //interakcja z grafem
@@ -65,7 +67,12 @@ namespace Test_lekcja
             infoBlock.Children.Clear();
             infoBlock.Children.Add(infoTitle);
 
-            if (!d.nodes.ContainsKey(d.focusedNode))
+            if(d.fastestPath.Count > 1) 
+            {
+                infoTitle.Text = (whichRoute) ? "Fastest Route" : "Shortest Route" ;
+                return;
+            }
+            else if (!d.nodes.ContainsKey(d.focusedNode))
             {
                 infoTitle.Text = $"Node List";
 
@@ -182,6 +189,8 @@ namespace Test_lekcja
                 infoBlock.Children.Add(scrollView);
                 infoBlock.Children.Add(horizontalLayout);
             }
+
+            d.fastestPath.Clear();
         }
 
         private async void GraphTappedOnce(object sender, TappedEventArgs e)
@@ -190,18 +199,18 @@ namespace Test_lekcja
             if (!clickedPoint.HasValue) return;
             double x = clickedPoint.Value.X, y = clickedPoint.Value.Y;
 
+            bool madeOperation = false;
             if (d.changeLocationNode != "")
             {
-                bool obstacle = false;
 
                 foreach (var node in d.nodes)
                     if (node.Key != d.changeLocationNode && Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2)) < d.radius * 2)
                     {
-                        obstacle = true;
+                        madeOperation = true;
                         break;
                     }
 
-                if (obstacle)
+                if (madeOperation)
                 {
                     await DisplayAlert("Error", $"You are moving {d.focusedNode} too close to another node. Try again", "OK");
                     return;
@@ -214,27 +223,33 @@ namespace Test_lekcja
                 UpdateNodeList();
                 return;
             }
-            else if (searching)
+            else if (d.fastestPath.Count > 1)
             {
                 foreach(var node in d.nodes)
                 {
                     double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
                     if (distance < d.radius)
                     {
-                        if (node.Key == d.focusedNode) { searching = false; break; }
+                        if (node.Key == d.focusedNode) { break; }
                         try
                         {
-                            GetFastestRoute(d.focusedNode, node.Key);
+                            d.fastestPath = GetFastestRoute(d.focusedNode, node.Key);
                         }
                         catch (Exception ex)
                         {
+                            d.fastestPath.Clear();
                             await DisplayAlert("Error", ex.Message, "OK");
                         }
+
+                        madeOperation = true;
                     }
                 }
+
+                if(!madeOperation) d.fastestPath.Clear();
+                UpdateNodeList();
+
             }
 
-            bool madeOperation = false;
             foreach (var node in d.nodes)
             {
                 double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
@@ -351,7 +366,7 @@ namespace Test_lekcja
                     List<string> next = bestRoute;
                     next.Add(friend.Key);
                     var nextDistance = EvaluateDistance(d.nodes[friend.Key], d.nodes[bestRoute[bestRoute.Count - 1]]);
-                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints + friend.Value + nextDistance;
+                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints  + nextDistance + ((whichRoute) ? friend.Value : 0);
 
                     ranking.Add(new Improvised
                     {
