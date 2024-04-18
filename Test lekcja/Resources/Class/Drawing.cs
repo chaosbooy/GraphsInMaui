@@ -19,35 +19,58 @@ namespace Test_lekcja.Resources.Class
             canvas.FillColor = Colors.White;
             radius = 10;
 
-            if(fastestPath.Count > 0)
-            {
+            
 
-            }
-
-            if(changeLocationNode != "")
+            if (changeLocationNode != "")
             {
                 canvas.FillColor = Colors.Red;
                 canvas.StrokeSize = 0;
                 radius = 20;
             }
 
-            foreach (var node in nodes)
+            if (fastestPath.Count > 0)
             {
-                if (changedNames.Item1 != null && node.Value.getFriends().ContainsKey(changedNames.Item1))
+                foreach (var node in nodes)
                 {
-                    node.Value.AddFriend(changedNames.Item2, node.Value.getFriends()[changedNames.Item1]);
-                    node.Value.RemoveFriend(changedNames.Item1);
+                    foreach (var friend in node.Value.getFriends().Keys)
+                    {
+                        var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
+                        var end = new PointF(node.Value.getLat(), node.Value.getLon());
+
+                        canvas.StrokeColor = (fastestPath.Contains(node.Key) && fastestPath.Contains(friend)) ? Colors.Bisque : Colors.White;
+                        canvas.DrawLine(start, end);
+                    }
                 }
 
-                foreach (var friend in node.Value.getFriends().Keys)
+                foreach (var node in nodes)
                 {
-                    var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
-                    var end = new PointF(node.Value.getLat(), node.Value.getLon());
-                    canvas.DrawLine(start, end);
+
+                    canvas.FillColor = fastestPath.Contains(node.Key) ? Colors.Salmon : Colors.White;
+                    canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
                 }
-                canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
+                
             }
-            changedNames = ("", "");
+
+            else
+            {
+                foreach (var node in nodes)
+                {
+                    if (changedNames.Item1 != null && node.Value.getFriends().ContainsKey(changedNames.Item1))
+                    {
+                        node.Value.AddFriend(changedNames.Item2, node.Value.getFriends()[changedNames.Item1]);
+                        node.Value.RemoveFriend(changedNames.Item1);
+                    }
+
+                    foreach (var friend in node.Value.getFriends().Keys)
+                    {
+                        var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
+                        var end = new PointF(node.Value.getLat(), node.Value.getLon());
+                        canvas.DrawLine(start, end);
+                    }
+                    canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
+                }
+                changedNames = ("", "");
+            }
 
             if (nodes.ContainsKey(focusedNode))
             {
@@ -56,10 +79,12 @@ namespace Test_lekcja.Resources.Class
                 canvas.DrawCircle(nodes[focusedNode].getLat(), nodes[focusedNode].getLon(), radius - 2.5f);
 
                 canvas.StrokeColor = Colors.LightBlue;
-                foreach (var friend in nodes[focusedNode].getFriends().Keys)
-                {
-                    canvas.DrawCircle(nodes[friend].getLat(), nodes[friend].getLon(), radius - 2.5f);
-                }
+
+                if(fastestPath.Count < 2 && changeLocationNode == "")
+                    foreach (var friend in nodes[focusedNode].getFriends().Keys)
+                    {
+                        canvas.DrawCircle(nodes[friend].getLat(), nodes[friend].getLon(), radius - 2.5f);
+                    }
             }
             
         }

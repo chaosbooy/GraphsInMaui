@@ -9,7 +9,7 @@ namespace Test_lekcja
     {
         int nodeCountId;
         Drawing d;
-        bool whichRoute; //true - fastest/false - shortest
+        bool whichRoute;
 
         public MainPage()
         {
@@ -54,12 +54,11 @@ namespace Test_lekcja
 
         private async void RouteClicked(object sender, EventArgs e)
         {
+            d.fastestPath.Clear();
             d.fastestPath.Add(d.focusedNode);
 
             whichRoute = await DisplayAlert("Route Selection", "Which route do you wanna take", "Fastest", "Shortest");
         }
-
-        //interakcja z grafem
 
         private void UpdateNodeList()
         {
@@ -67,9 +66,60 @@ namespace Test_lekcja
             infoBlock.Children.Clear();
             infoBlock.Children.Add(infoTitle);
 
-            if(d.fastestPath.Count > 1) 
+            if (d.fastestPath.Count > 1)
             {
-                infoTitle.Text = (whichRoute) ? "Fastest Route" : "Shortest Route" ;
+                infoTitle.Text = (whichRoute) ? "Fastest Route" : "Shortest Route";
+
+                var scrollView = new ScrollView
+                {
+                    HeightRequest = nodeGraph.Height - 150,
+                };
+                nodeGraph.SizeChanged += (s, e) =>
+                {
+                    scrollView.HeightRequest = this.nodeGraph.Height - 150;
+                };
+                var verticalLayout = new VerticalStackLayout();
+
+
+                foreach (var node in d.fastestPath)
+                {
+                    var label = new Label
+                    {
+                        TextColor = d.focusedNode == node ? Colors.LightBlue : Colors.White,
+                        Text = node,
+                        FontSize = 30,
+                        HorizontalOptions = LayoutOptions.Fill,
+                        Padding = 3,
+                        Margin = 7,
+                    };
+                    var tapLabel = new TapGestureRecognizer();
+                    tapLabel.Tapped += (s, e) =>
+                    {
+                        d.focusedNode = node;
+                        UpdateNodeList();
+                    };
+
+                    label.GestureRecognizers.Add(tapLabel);
+
+                    verticalLayout.Add(label);
+                }
+
+                scrollView.Content = verticalLayout;
+                infoBlock.Children.Add(scrollView);
+
+                var cancelButton = new Button
+                {
+                    Text = "go back",
+                    HeightRequest = 40,
+                };
+                cancelButton.Clicked += (s, e) =>
+                {
+                    d.focusedNode = d.fastestPath[0];
+                    d.fastestPath.Clear();
+                    UpdateNodeList();
+                };
+                infoBlock.Children.Add(cancelButton);
+
                 return;
             }
             else if (!d.nodes.ContainsKey(d.focusedNode))
@@ -223,9 +273,9 @@ namespace Test_lekcja
                 UpdateNodeList();
                 return;
             }
-            else if (d.fastestPath.Count > 1)
+            else if (d.fastestPath.Count == 1)
             {
-                foreach(var node in d.nodes)
+                foreach (var node in d.nodes)
                 {
                     double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
                     if (distance < d.radius)
@@ -245,15 +295,22 @@ namespace Test_lekcja
                     }
                 }
 
-                if(!madeOperation) d.fastestPath.Clear();
+                if (!madeOperation) d.fastestPath.Clear();
                 UpdateNodeList();
-
+                return;
             }
 
             foreach (var node in d.nodes)
             {
                 double distance = Math.Sqrt(Math.Pow(x - node.Value.getLat(), 2) + Math.Pow(y - node.Value.getLon(), 2));
-                if (distance < d.radius && d.focusedNode == "")
+                if (distance < d.radius && d.fastestPath.Count > 1)
+                {
+                    d.focusedNode = node.Key;
+                    madeOperation = true;
+                    break;
+
+                }
+                else if (distance < d.radius && d.focusedNode == "")
                 {
                     d.focusedNode = node.Key;
                     madeOperation = true;
@@ -261,8 +318,8 @@ namespace Test_lekcja
                 }
                 else if (distance < d.radius && d.focusedNode == node.Key)
                 {
-                    madeOperation = true;
                     d.focusedNode = "";
+                    madeOperation = true;
                     break;
                 }
                 else if (distance < d.radius && d.focusedNode != "" && d.focusedNode != node.Key)
@@ -286,7 +343,7 @@ namespace Test_lekcja
                 AddNextNode(null, (float)x, (float)y);
                 d.focusedNode = "";
             }
-            else if (!madeOperation && d.focusedNode != "") d.focusedNode = "";
+            else if (!madeOperation && d.focusedNode != "" && d.fastestPath.Count < 2) d.focusedNode = "";
 
             UpdateNodeList();
         }
@@ -338,44 +395,36 @@ namespace Test_lekcja
 
         private List<string> GetFastestRoute(string start, string stop)
         {
-            var ranking = new List<Improvised>();
+            var ranking = new List<(List<string>, float)>();
             var history = new List<string>();
             float distance = EvaluateDistance(d.nodes[start], d.nodes[stop]);
 
-            ranking.Add(new Improvised
-            {
-                path = new List<string> { start },
-                dist = distance,
-            });
+            ranking.Add(new(item1: new List<string> { start }, item2: distance));
 
             while (ranking.Count > 0)
             {
-                List<string> bestRoute = ranking[0].path;
-                float onlyPoints = ranking[0].dist - EvaluateDistance(d.nodes[bestRoute[bestRoute.Count - 1]], d.nodes[stop]);
+                List<string> bestRoute = ranking[0].Item1;
+                float onlyPoints = ranking[0].Item2 - EvaluateDistance(d.nodes[bestRoute[bestRoute.Count - 1]], d.nodes[stop]);
                 history.Add(bestRoute[bestRoute.Count - 1]);
                 ranking.RemoveAt(0);
-                foreach(var friend in d.nodes[bestRoute[bestRoute.Count - 1]].getFriends())
+                foreach (var friend in d.nodes[bestRoute[bestRoute.Count - 1]].getFriends())
                 {
                     if (history.Contains(friend.Key)) continue;
-                    else if(friend.Key == stop)
+                    else if (friend.Key == stop)
                     {
                         bestRoute.Add(stop);
                         return bestRoute;
                     }
 
-                    List<string> next = bestRoute;
+                    List<string> next = new List<string>(bestRoute);
                     next.Add(friend.Key);
                     var nextDistance = EvaluateDistance(d.nodes[friend.Key], d.nodes[bestRoute[bestRoute.Count - 1]]);
-                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints  + nextDistance + ((whichRoute) ? friend.Value : 0);
+                    distance = EvaluateDistance(d.nodes[friend.Key], d.nodes[stop]) + onlyPoints + nextDistance + ((whichRoute) ? friend.Value : 0);
 
-                    ranking.Add(new Improvised
-                    {
-                        dist = distance,
-                        path = next,
-                    });
+                    ranking.Add(new(item1: next, item2: distance));
                 }
 
-                ranking.Sort((x, y) => x.dist.CompareTo(y.dist));
+                ranking = ranking.OrderBy(o => o.Item2).ToList();
             }
 
             throw new Exception($"There is no path from {start} to {stop}");
@@ -383,9 +432,4 @@ namespace Test_lekcja
 
         private float EvaluateDistance(Node first, Node second) { return (float)Math.Sqrt(Math.Pow(first.getLat() - second.getLat(), 2) + Math.Pow(first.getLon() - second.getLon(), 2)); }
     }
-}
-public struct Improvised
-{
-    public List<string> path;
-    public float dist;
 }
