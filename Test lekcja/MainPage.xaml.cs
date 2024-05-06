@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Platform;
 using System.Diagnostics;
 using System.Xml.Linq;
 using Test_lekcja.Resources.Class;
@@ -68,7 +69,7 @@ namespace Test_lekcja
 
             if (d.fastestPath.Count > 1)
             {
-                infoTitle.Text = (whichRoute) ? "Fastest Route" : "Shortest Route";
+                infoTitle.Text = whichRoute ? "Fastest Route" : "Shortest Route";
 
                 var scrollView = new ScrollView
                 {
@@ -80,13 +81,17 @@ namespace Test_lekcja
                 };
                 var verticalLayout = new VerticalStackLayout();
 
-
+                int i = 0;
+                float totalWeight = 0;
                 foreach (var node in d.fastestPath)
                 {
+                    float weight = d.fastestPath.Count > ++i ?EvaluateDistance(d.nodes[node], d.nodes[d.fastestPath[i]]) + (whichRoute ? d.nodes[node].getFriends()[d.fastestPath[i]] : 0) : 0;
+                    totalWeight += weight;
+
                     var label = new Label
                     {
                         TextColor = d.focusedNode == node ? Colors.LightBlue : Colors.White,
-                        Text = node,
+                        Text = $"{node}    {(d.fastestPath.Count > i ? weight.ToString("F3") : "Total: " + totalWeight.ToString("F3"))}",
                         FontSize = 30,
                         HorizontalOptions = LayoutOptions.Fill,
                         Padding = 3,
@@ -174,22 +179,18 @@ namespace Test_lekcja
                     scrollView.HeightRequest = this.nodeGraph.Height - 150;
                 };
                 var verticalLayout = new VerticalStackLayout();
-                foreach (var friend in d.nodes[d.focusedNode].getFriends().Keys)
+                foreach (var friend in d.nodes[d.focusedNode].getFriends())
                 {
                     var label = new Label
                     {
-                        Text = friend,
+                        Text = $"{friend.Key} weight: {friend.Value}",
                         FontSize = 30,
                         HorizontalOptions = LayoutOptions.Fill,
                         Padding = 3,
                         Margin = 7,
                     };
                     var tapLabel = new TapGestureRecognizer();
-                    tapLabel.Tapped += (s, e) =>
-                    {
-                        d.focusedNode = friend;
-                        UpdateNodeList();
-                    };
+                    tapLabel.Tapped += (s, e) => changeWeight(friend);
 
                     label.GestureRecognizers.Add(tapLabel);
 
@@ -241,6 +242,14 @@ namespace Test_lekcja
             }
 
             d.fastestPath.Clear();
+        }
+
+        private async void changeWeight(KeyValuePair<string, int> f)
+        {
+            string changed = await DisplayPromptAsync("Change Weight", $"Write the changed weight for node {f.Key}");
+
+            d.nodes[d.focusedNode].ChangeFriendWeight(f.Key, int.Parse(changed)); ;
+            UpdateNodeList();
         }
 
         private async void GraphTappedOnce(object sender, TappedEventArgs e)
@@ -322,6 +331,7 @@ namespace Test_lekcja
                     madeOperation = true;
                     break;
                 }
+                //get some friends if
                 else if (distance < d.radius && d.focusedNode != "" && d.focusedNode != node.Key)
                 {
                     if (d.nodes[d.focusedNode].ContainsFriend(node.Key))

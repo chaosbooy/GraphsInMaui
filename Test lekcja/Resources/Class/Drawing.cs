@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Text;
 
 namespace Test_lekcja.Resources.Class
 {
@@ -14,6 +15,9 @@ namespace Test_lekcja.Resources.Class
 
         public void Draw(ICanvas canvas, RectF rect)
         {
+            canvas.FontColor = Colors.White;
+            canvas.FontSize = 23;
+
             canvas.StrokeColor = Colors.White;
             canvas.StrokeSize = 5;
             canvas.FillColor = Colors.White;
@@ -32,13 +36,21 @@ namespace Test_lekcja.Resources.Class
             {
                 foreach (var node in nodes)
                 {
-                    foreach (var friend in node.Value.getFriends().Keys)
+                    foreach (var friend in node.Value.getFriends())
                     {
-                        var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
+                        var start = new PointF(nodes[friend.Key].getLat(), nodes[friend.Key].getLon());
                         var end = new PointF(node.Value.getLat(), node.Value.getLon());
 
-                        canvas.StrokeColor = (fastestPath.Contains(node.Key) && fastestPath.Contains(friend)) ? Colors.Bisque : Colors.White;
+                        canvas.StrokeColor = (fastestPath.Contains(node.Key) && fastestPath[fastestPath.FindIndex(x => x == node.Key) + 1] == friend.Key) ? Colors.Bisque : Colors.White;
                         canvas.DrawLine(start, end);
+
+                        var textDisplay = GetCenter(start, end);
+                        float x = node.Value.getLat() - nodes[friend.Key].getLat();
+                        float y = node.Value.getLon() - nodes[friend.Key].getLon();
+                        float angle = (float)(Math.Atan2(y, x) * 180 / Math.PI);
+                        canvas.Rotate(angle, textDisplay.X, textDisplay.Y);
+                        canvas.DrawString(friend.Value.ToString(), textDisplay.X, textDisplay.Y - 5, HorizontalAlignment.Center);
+                        canvas.Rotate(-angle, textDisplay.X, textDisplay.Y);
                     }
                 }
 
@@ -61,11 +73,19 @@ namespace Test_lekcja.Resources.Class
                         node.Value.RemoveFriend(changedNames.Item1);
                     }
 
-                    foreach (var friend in node.Value.getFriends().Keys)
+                    foreach (var friend in node.Value.getFriends())
                     {
-                        var start = new PointF(nodes[friend].getLat(), nodes[friend].getLon());
+                        var start = new PointF(nodes[friend.Key].getLat(), nodes[friend.Key].getLon());
                         var end = new PointF(node.Value.getLat(), node.Value.getLon());
                         canvas.DrawLine(start, end);
+
+                        var textDisplay = GetCenter(start, end);
+                        float x = node.Value.getLat() - nodes[friend.Key].getLat();
+                        float y = node.Value.getLon() - nodes[friend.Key].getLon();
+                        float angle = (float)(Math.Atan2(y,x) * 180 / Math.PI);
+                        canvas.Rotate(angle, textDisplay.X, textDisplay.Y);
+                        canvas.DrawString(friend.Value.ToString(), textDisplay.X, textDisplay.Y - 5, HorizontalAlignment.Center);
+                        canvas.Rotate(-angle, textDisplay.X, textDisplay.Y);
                     }
                     canvas.FillCircle(node.Value.getLat(), node.Value.getLon(), radius);
                 }
@@ -87,6 +107,15 @@ namespace Test_lekcja.Resources.Class
                     }
             }
             
+        }
+
+        private PointF GetCenter(PointF node1, PointF node2)
+        {
+            return new PointF
+            {
+                X = (node1.X + node2.X) / 2,
+                Y = (node1.Y + node2.Y) / 2,
+            };
         }
     }
 }
